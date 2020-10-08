@@ -43,7 +43,14 @@ def map(process, paths, threads=None):
     paths = [mwtypes.files.normalize_path(path) for path in paths]
 
     def process_path(path):
-        dump = Dump.from_file(mwtypes.files.reader(path))
-        yield from process(dump, path)
+        try:
+            dump = Dump.from_file(mwtypes.files.reader(path))
+            yield from process(dump, path)
+        except Exception as error:
+            logger.error(
+                "Failed while processing dump " +
+                "{0}: {1}".format(repr(path),
+                                  "\n" + traceback.format_exc()))
+
 
     yield from para.map(process_path, paths, mappers=threads)
